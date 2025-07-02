@@ -43,7 +43,7 @@ else:
         """
 
         try:
-            response = openai.ChatCompletion.create(
+            response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an expert sales email writer."},
@@ -52,7 +52,7 @@ else:
                 temperature=0.7,
                 max_tokens=500
             )
-            email_text = response.choices[0].message['content'].strip()
+            email_text = response.choices[0].message.content.strip()
             st.subheader("📩 Generated Outreach Email")
             st.code(email_text, language="markdown")
         except Exception as e:
