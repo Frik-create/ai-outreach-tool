@@ -5,10 +5,6 @@ import os
 import pandas as pd
 from urllib.parse import quote
 
-
-
-
-
 st.set_page_config(page_title="AI Outreach Generator", page_icon="📧")
 
 st.title("📧 AI-Powered Sales Outreach Generator")
@@ -81,18 +77,14 @@ else:
             df.to_csv(log_file, index=False)
 
             # Send via email
-            st.markdown("### ✉️ Send This Email")
+            st.markdown("### 📤 Send This Email")
             recipient = st.text_input("Recipient Email")
             if recipient:
-            mail_subject = quote(email_text.split('\n')[0].replace("Subject: ", ""))
-            mail_body = quote(email_text.replace("\n", "%0A"))
-            mailto_link = f"mailto:{recipient}?subject={mail_subject}&body={mail_body}"
-            st.markdown(f"[Click here to send]({mailto_link})", unsafe_allow_html=True)
-  
-  
- 
-         
-  
+                mail_subject = quote(email_text.split('\n')[0].replace("Subject: ", ""))
+                mail_body = quote(email_text.replace("\n", "%0A"))
+                mailto_link = f"mailto:{recipient}?subject={mail_subject}&body={mail_body}"
+                st.markdown(f"[Click here to send]({mailto_link})", unsafe_allow_html=True)
 
-
+        except Exception as e:
             st.error(f"An error occurred: {e}")
+
