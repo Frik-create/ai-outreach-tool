@@ -3,12 +3,17 @@ import streamlit as st
 import openai
 import os
 import pandas as pd
+import re
 from urllib.parse import quote
 
 st.set_page_config(page_title="AI Outreach Generator", page_icon="📧")
 
 st.title("📧 AI-Powered Sales Outreach Generator")
 st.write("Generate personalized outreach emails based on a lead's background.")
+
+# Helper: Validate Email Format
+def is_valid_email(email):
+    return re.match(r"[^@]+@[^@]+\.[^@]+", email)
 
 # Get API key
 if "api_key" not in st.session_state:
@@ -19,11 +24,19 @@ else:
     openai.api_key = st.session_state.api_key
 
     with st.form("lead_form"):
+        st.header("🎯 Lead Information")
         name = st.text_input("Lead Name")
         job_title = st.text_input("Job Title")
         company = st.text_input("Company")
         recent_activity = st.text_area("Recent Activity (e.g. LinkedIn post, article)", "")
         personality = st.text_area("Personality Summary (optional)", "")
+
+        st.header("✍️ Your Information")
+        your_name = st.text_input("Your Name")
+        your_position = st.text_input("Your Position")
+        your_company = st.text_input("Your Company Name")
+        contact_info = st.text_area("Your Contact Info (email/phone/link)")
+
         submitted = st.form_submit_button("Generate Email")
 
     if submitted:
@@ -35,12 +48,19 @@ else:
         Recent Activity: {recent_activity or 'N/A'}
         Personality Summary: {personality or 'N/A'}
 
+        Sender Info:
+        Name: {your_name}
+        Position: {your_position}
+        Company: {your_company}
+        Contact Info: {contact_info}
+
         The email should:
         - Begin with a formal greeting
         - Mention the recent activity to show relevance
         - Introduce the sender’s company and value proposition
         - Suggest a professional call to action (e.g., a meeting)
         - Use a formal tone
+        - End with sender's full signature
         """
 
         try:
@@ -54,10 +74,16 @@ else:
                 max_tokens=500
             )
             email_text = response.choices[0].message.content.strip()
-            st.subheader("📩 Generated Outreach Email")
-            st.code(email_text, language="markdown")
 
-            # Log to CSV automatically
+            # Optional subject editing
+            default_subject = "Follow-up Outreach"
+            if "Subject:" in email_text.splitlines()[0]:
+                default_subject = email_text.splitlines()[0].replace("Subject:", "").strip()
+
+            st.subheader("📩 Generated Outreach Email")
+            st.markdown(email_text)
+
+            # Log to CSV
             log_data = {
                 "Timestamp": datetime.now().isoformat(),
                 "Name": name,
@@ -65,7 +91,9 @@ else:
                 "Company": company,
                 "Recent Activity": recent_activity,
                 "Personality Summary": personality,
-                "Email": email_text
+                "Email": email_text,
+                "Your Name": your_name,
+                "Your Company": your_company
             }
 
             log_file = "lead_log.csv"
@@ -76,14 +104,18 @@ else:
                 df = pd.DataFrame([log_data])
             df.to_csv(log_file, index=False)
 
-            # Send via email
-            st.markdown("### 📤 Send This Email")
+            # Send section
+            st.subheader("📤 Send This Email")
             recipient = st.text_input("Recipient Email")
+
             if recipient:
-                mail_subject = quote(email_text.split('\n')[0].replace("Subject: ", ""))
-                mail_body = quote(email_text.replace("\n", "%0A"))
-                mailto_link = f"mailto:{recipient}?subject={mail_subject}&body={mail_body}"
-                st.markdown(f"[Click here to send]({mailto_link})", unsafe_allow_html=True)
+                if is_valid_email(recipient):
+                    subject = st.text_input("Edit Subject Line", value=default_subject)
+                    mail_body = quote(email_text.replace("\n", "%0A"))
+                    mailto_link = f"mailto:{recipient}?subject={quote(subject)}&body={mail_body}"
+                    st.markdown(f"[📬 Click here to send the email]({mailto_link})", unsafe_allow_html=True)
+                else:
+                    st.warning("⚠️ Please enter a valid email address.")
 
         except Exception as e:
             st.error(f"An error occurred: {e}")
