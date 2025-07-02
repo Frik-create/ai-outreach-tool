@@ -6,16 +6,15 @@ import pandas as pd
 import re
 from urllib.parse import quote
 
-st.set_page_config(page_title="AI Outreach Generator", page_icon="📧")
-
+st.set_page_config(page_title="QICP AI Outreach Generator", page_icon="📧")
 st.title("📧 AI-Powered Sales Outreach Generator")
-st.write("Generate personalized outreach emails based on a lead's background.")
+st.write("Craft tailored emails that highlight QICP’s sustainable engineering plastic solutions.")
 
-# Helper: Validate Email Format
+# Email validator
 def is_valid_email(email):
     return re.match(r"[^@]+@[^@]+\.[^@]+", email)
 
-# Get API key
+# API Key setup
 if "api_key" not in st.session_state:
     api_key = st.text_input("🔑 Enter your OpenAI API key:", type="password")
     if api_key:
@@ -28,39 +27,47 @@ else:
         name = st.text_input("Lead Name")
         job_title = st.text_input("Job Title")
         company = st.text_input("Company")
-        recent_activity = st.text_area("Recent Activity (e.g. LinkedIn post, article)", "")
-        personality = st.text_area("Personality Summary (optional)", "")
+        recent_activity = st.text_area("Recent Activity (e.g. LinkedIn post, company announcement)", "")
+        sector = st.selectbox("Industry Sector", [
+            "Mining", "Agriculture", "Petrochemical", "Aerospace", "Defence", 
+            "Food & Beverage", "Medical & Science", "Construction", 
+            "Transport", "Heavy Engineering", "Other"
+        ])
 
-        st.header("✍️ Your Information")
-        your_name = st.text_input("Your Name")
-        your_position = st.text_input("Your Position")
-        your_company = st.text_input("Your Company Name")
-        contact_info = st.text_area("Your Contact Info (email/phone/link)")
+        st.header("✍️ Your Info")
+        your_name = st.text_input("Your Name", value="Frederick Kahts")
+        your_position = st.text_input("Your Position", value="Director")
+        your_company = st.text_input("Your Company", value="QUALITY INDUSTRIAL AND COMMERCIAL PRODUCTS PTY Ltd")
+        contact_info = st.text_input("Contact Info", value="frik@qicp.co.za / +27 73 163 1077")
 
         submitted = st.form_submit_button("Generate Email")
 
     if submitted:
-        prompt = f"""You are a professional B2B outreach assistant. Write a concise, formal, and respectful email to the following lead:
+        prompt = f"""
+        You are a professional sales outreach assistant writing on behalf of QUALITY INDUSTRIAL AND COMMERCIAL PRODUCTS PTY Ltd (QICP).
+        Compose a concise and professional B2B outreach email tailored to the following lead:
 
-        Name: {name}
-        Job Title: {job_title}
-        Company: {company}
-        Recent Activity: {recent_activity or 'N/A'}
-        Personality Summary: {personality or 'N/A'}
+        Lead Info:
+        - Name: {name}
+        - Job Title: {job_title}
+        - Company: {company}
+        - Sector: {sector}
+        - Recent Activity: {recent_activity or 'N/A'}
 
-        Sender Info:
-        Name: {your_name}
-        Position: {your_position}
-        Company: {your_company}
-        Contact Info: {contact_info}
+        QICP provides:
+        - Semi-finished engineering plastic stock (rods, sheets, tubes)
+        - CNC machined components (bushes, gears, enclosures, seals)
+        - Injection molded parts
+        - Thermoplastic piping and fittings
+        - Stainless steel and polymer fabrication for industries like {sector}
+        - Sustainable, corrosion-resistant, lightweight solutions
 
-        The email should:
-        - Begin with a formal greeting
-        - Mention the recent activity to show relevance
-        - Introduce the sender’s company and value proposition
-        - Suggest a professional call to action (e.g., a meeting)
-        - Use a formal tone
-        - End with sender's full signature
+        Use a formal tone, mention our commitment to sustainability and tailored solutions. Conclude with this signature:
+
+        Warm regards,  
+        {your_name}  
+        {your_position}, {your_company}  
+        {contact_info}
         """
 
         try:
@@ -74,26 +81,18 @@ else:
                 max_tokens=500
             )
             email_text = response.choices[0].message.content.strip()
-
-            # Optional subject editing
-            default_subject = "Follow-up Outreach"
-            if "Subject:" in email_text.splitlines()[0]:
-                default_subject = email_text.splitlines()[0].replace("Subject:", "").strip()
-
             st.subheader("📩 Generated Outreach Email")
             st.markdown(email_text)
 
-            # Log to CSV
+            # Log email
             log_data = {
                 "Timestamp": datetime.now().isoformat(),
-                "Name": name,
+                "Lead Name": name,
                 "Job Title": job_title,
                 "Company": company,
+                "Sector": sector,
                 "Recent Activity": recent_activity,
-                "Personality Summary": personality,
-                "Email": email_text,
-                "Your Name": your_name,
-                "Your Company": your_company
+                "Email": email_text
             }
 
             log_file = "lead_log.csv"
@@ -104,19 +103,18 @@ else:
                 df = pd.DataFrame([log_data])
             df.to_csv(log_file, index=False)
 
-            # Send section
+            # Email delivery
             st.subheader("📤 Send This Email")
             recipient = st.text_input("Recipient Email")
-
             if recipient:
                 if is_valid_email(recipient):
-                    subject = st.text_input("Edit Subject Line", value=default_subject)
-                    mail_body = quote(email_text.replace("\n", "%0A"))
-                    mailto_link = f"mailto:{recipient}?subject={quote(subject)}&body={mail_body}"
+                    subject_guess = "Exploring Engineering Plastic Solutions from QICP"
+                    subject = st.text_input("Edit Subject Line", value=subject_guess)
+                    body = quote(email_text.replace("\n", "%0A"))
+                    mailto_link = f"mailto:{recipient}?subject={quote(subject)}&body={body}"
                     st.markdown(f"[📬 Click here to send the email]({mailto_link})", unsafe_allow_html=True)
                 else:
-                    st.warning("⚠️ Please enter a valid email address.")
-
+                    st.warning("⚠️ Invalid email format. Please check the recipient email.")
         except Exception as e:
             st.error(f"An error occurred: {e}")
 
