@@ -1,9 +1,10 @@
-import datetime
+import from datetime import datetime
 import streamlit as st
 import openai
 import os
 import pandas as pd
 from urllib.parse import quote
+
 
 st.set_page_config(page_title="AI Outreach Generator", page_icon="📧")
 
