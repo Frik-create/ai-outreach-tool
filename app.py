@@ -44,7 +44,7 @@ else:
 
         try:
             response = openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are an expert sales email writer."},
                     {"role": "user", "content": prompt}
