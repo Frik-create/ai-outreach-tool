@@ -83,7 +83,12 @@ else:
                 mail_subject = quote(email_text.split('\n')[0].replace("Subject: ", ""))
                 mail_body = quote(email_text.replace("\n", "%0A"))
                 mailto_link = f"mailto:{recipient}?subject={mail_subject}&body={mail_body}"
-                st.markdown(f"[Click here to send](\{mailto_link})", unsafe_allow_html=True)
+                   st.markdown(f"[Click here to send]({mailto_link})", unsafe_allow_html=True)
+  with open(log_file, "rb") as f:
+        st.download_button("📩 Download Log", f, file_name=log_file, mime="text/csv") 
+ 
+         
+  
 
-        except Exception as e:
+
             st.error(f"An error occurred: {e}")
