@@ -1,6 +1,4 @@
-
-            
-      from datetime import datetime
+from datetime import datetime
 import streamlit as st
 import openai
 import os
@@ -130,4 +128,5 @@ else:
 
         except Exception as e:
             st.error(f"An error occurred: {e}")
+
    
