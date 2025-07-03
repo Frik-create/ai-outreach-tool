@@ -26,7 +26,7 @@ def log_to_google_sheet(data_row):
     gc = gspread.authorize(creds)
     
     # ⬇️ Replace this URL with your actual Google Sheet URL
-    sheet_url = "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_HERE"
+    sheet_url = "https://docs.google.com/spreadsheets/d/1wqXlnG2EjExIZ4JhsDyfqouTtcIpY4Xw_0OGsJETeyA/edit?gid=0#gid=0
     sh = gc.open_by_url(sheet_url)
     worksheet = sh.sheet1
     worksheet.append_row(data_row)
