@@ -5,6 +5,8 @@ import os
 import pandas as pd
 import re
 from urllib.parse import quote
+import gspread
+from google.oauth2.service_account import Credentials
 
 # ---------- Setup ----------
 st.set_page_config(page_title="QICP AI Outreach Generator", page_icon="📧")
@@ -14,6 +16,20 @@ st.write("Craft tailored B2B outreach emails that highlight QICP’s engineering
 # ---------- Email Validator ----------
 def is_valid_email(email):
     return re.match(r"[^@]+@[^@]+\.[^@]+", email)
+
+# ---------- Google Sheets Logger ----------
+def log_to_google_sheet(data_row):
+    creds = Credentials.from_service_account_file("credentials.json", scopes=[
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ])
+    gc = gspread.authorize(creds)
+    
+    # ⬇️ Replace this URL with your actual Google Sheet URL
+    sheet_url = "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_HERE"
+    sh = gc.open_by_url(sheet_url)
+    worksheet = sh.sheet1
+    worksheet.append_row(data_row)
 
 # ---------- API Key ----------
 if "api_key" not in st.session_state:
@@ -29,7 +45,7 @@ else:
         name = st.text_input("Lead Name")
         job_title = st.text_input("Job Title")
         company = st.text_input("Company")
-        recent_activity = st.text_area("Recent Activity (e.g. LinkedIn post, article)", "")
+        recent_activity = st.text_area("Recent Activity", "")
         sector = st.selectbox("Industry Sector", [
             "Mining", "Agriculture", "Petrochemical", "Aerospace", "Defence",
             "Food & Beverage", "Medical & Science", "Construction",
@@ -85,7 +101,7 @@ else:
             st.subheader("📩 Generated Outreach Email")
             st.markdown(email_text)
 
-            # Optional log to file
+            # Save to CSV
             log_data = {
                 "Timestamp": datetime.now().isoformat(),
                 "Name": name,
@@ -104,10 +120,21 @@ else:
                 df = pd.DataFrame([log_data])
             df.to_csv(log_file, index=False)
 
+            # ✅ Push to Google Sheets
+            log_to_google_sheet([
+                datetime.now().isoformat(),
+                name,
+                job_title,
+                company,
+                sector,
+                recent_activity,
+                email_text
+            ])
+
         except Exception as e:
             st.error(f"An error occurred: {e}")
 
-# ---------- Bulk Upload Mode ----------
+# ---------- Bulk Upload ----------
 st.header("📥 Bulk CSV Lead Upload")
 
 uploaded_file = st.file_uploader("Upload CSV file of leads", type=["csv"])
@@ -163,6 +190,18 @@ if uploaded_file is not None:
                     )
                     email_text = response.choices[0].message.content.strip()
                     generated_emails.append(email_text)
+
+                    # ✅ Log each one to Google Sheets
+                    log_to_google_sheet([
+                        datetime.now().isoformat(),
+                        name,
+                        job_title,
+                        company,
+                        sector,
+                        recent_activity,
+                        email_text
+                    ])
+
                 except Exception as e:
                     generated_emails.append(f"ERROR: {str(e)}")
 
@@ -173,4 +212,5 @@ if uploaded_file is not None:
             
             csv_download = bulk_df.to_csv(index=False).encode('utf-8')
             st.download_button("📥 Download CSV with Emails", csv_download, "bulk_outreach_emails.csv", "text/csv")
+
 
