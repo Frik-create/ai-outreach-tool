@@ -21,7 +21,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.header("ðŸ” API Key Required")
+st.sidebar.header("API Key Required")
 api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
 if not api_key:
     st.warning("Please enter your API key to begin.")
