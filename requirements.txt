@@ -1,8 +1,9 @@
 streamlit
 openai
-pandas
 gspread
+pandas
+fpdf
+requests
+msal
 google-auth
-
-
-
+google-auth-oauthlib
