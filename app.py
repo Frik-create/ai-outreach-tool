@@ -21,7 +21,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.header("API Key Required")
+st.sidebar.header("🔐 API Key Required")
 api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
 if not api_key:
     st.warning("Please enter your API key to begin.")
@@ -35,14 +35,14 @@ worksheet = gclient.open_by_url(SHEET_URL).sheet1
 client_ai = openai.OpenAI(api_key=api_key)
 
 def sanitize_text(text):
-    text = text.replace("â€™", "'").replace("â€˜", "'").replace("â€œ", '"').replace("â€", '"').replace("â€“", "-")
-    return re.sub(r'[^ -Ã¿]', '', text)
+    text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"').replace("–", "-")
+    return re.sub(r'[^\x00-\x7F]+', ' ', text)
 
-st.title("ðŸ“§ QICP B2B Outreach Tool")
+st.title("📧 QICP B2B Outreach Tool")
 industry = st.selectbox("Select Industry", ["Mining", "Construction", "Agriculture", "Healthcare"])
 contact = st.text_input("Contact Info (email / phone)")
 
-if st.button("ðŸ“¤ Generate Email"):
+if st.button("📤 Generate Email"):
     try:
         prompt = f"Write a concise B2B outreach email to a {industry.lower()} client."
         response = client_ai.chat.completions.create(
@@ -62,14 +62,14 @@ if st.button("ðŸ“¤ Generate Email"):
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         worksheet.append_row([timestamp, industry, contact, email_text])
-        st.success("âœ… Email logged to Google Sheet.")
+        st.success("✅ Email logged to Google Sheet.")
 
-        st.subheader("ðŸ“¨ Generated Email")
-        with st.expander("ðŸ“„ View Email Text"):
+        st.subheader("📨 Generated Email")
+        with st.expander("📄 View Email Text"):
             st.code(email_text)
-        st.download_button("ðŸ“¥ Download Email as PDF", data=pdf_output, file_name="outreach_email.pdf")
+        st.download_button("📥 Download Email as PDF", data=pdf_output, file_name="outreach_email.pdf")
 
-        st.subheader("ðŸ“¤ Send Email via Outlook")
+        st.subheader("📤 Send Email via Outlook")
         if "outlook" in st.secrets:
             if st.button("Send via Outlook"):
                 outlook = st.secrets["outlook"]
@@ -100,16 +100,16 @@ if st.button("ðŸ“¤ Generate Email"):
                         json=email_payload
                     )
                     if response.status_code == 202:
-                        st.success("âœ… Email sent via Outlook!")
+                        st.success("✅ Email sent via Outlook!")
                     else:
-                        st.error(f"âŒ Send failed: {response.status_code}")
+                        st.error(f"❌ Send failed: {response.status_code}")
                         st.text(response.text)
                 else:
-                    st.error("âŒ Microsoft authentication failed.")
+                    st.error("❌ Microsoft authentication failed.")
         else:
-            st.info("â„¹ï¸ Outlook integration not configured in secrets.toml.")
+            st.info("ℹ️ Outlook integration not configured in secrets.toml.")
 
-        st.subheader("ðŸ” Generate Follow-Up Email")
+        st.subheader("📌 Generate Follow-Up Email")
         if st.button("Generate Follow-Up"):
             follow_prompt = f"Write a polite follow-up to this email:\n\n{email_text}"
             follow_response = client_ai.chat.completions.create(
@@ -118,26 +118,26 @@ if st.button("ðŸ“¤ Generate Email"):
             )
             follow_email = follow_response.choices[0].message.content.strip()
             worksheet.append_row([timestamp, industry, contact, follow_email, "Follow-Up"])
-            st.success("ðŸ” Follow-up logged.")
-            with st.expander("ðŸ“„ Follow-Up Text"):
+            st.success("📌 Follow-up logged.")
+            with st.expander("📄 Follow-Up Text"):
                 st.code(follow_email)
 
     except Exception as e:
-        st.error(f"âŒ Error: {e}")
+        st.error(f"❌ Error: {e}")
 
 st.markdown("---")
-st.header("ðŸ“ Bulk Upload CSV & Generate Outreach Emails")
+st.header("📁 Bulk Upload CSV & Generate Outreach Emails")
 bulk_file = st.file_uploader("Upload CSV with 'Industry' and 'Contact' columns", type="csv")
 
 if bulk_file is not None:
     try:
         df = pd.read_csv(bulk_file)
         if not {"Industry", "Contact"}.issubset(df.columns):
-            st.error("âŒ CSV must contain 'Industry' and 'Contact' columns.")
+            st.error("❌ CSV must contain 'Industry' and 'Contact' columns.")
         else:
             st.dataframe(df)
 
-            if st.button("ðŸ“¤ Generate Bulk Emails"):
+            if st.button("📤 Generate Bulk Emails"):
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, 'w') as zipf:
                     for idx, row in df.iterrows():
@@ -169,7 +169,9 @@ if bulk_file is not None:
                         ])
 
                 zip_buffer.seek(0)
-                st.download_button("ðŸ“¥ Download All PDFs as ZIP", data=zip_buffer, file_name="qicp_bulk_emails.zip")
+                st.download_button("📥 Download All PDFs as ZIP", data=zip_buffer, file_name="qicp_bulk_emails.zip")
 
     except Exception as e:
-        st.error(f"âŒ Bulk generation failed: {e}")
+        st.error(f"❌ Bulk generation failed: {e}")
+
+
