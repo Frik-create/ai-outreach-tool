@@ -2,8 +2,6 @@ streamlit
 openai
 gspread
 pandas
-fpdf
-requests
-msal
-google-auth
-google-auth-oauthlib
+pdfkit
+pytz
+oauth2client
