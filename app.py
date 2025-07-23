@@ -13,7 +13,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 st.set_page_config(page_title="QICP B2B Outreach Tool", page_icon="📧", layout="wide")
 
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1wqxXlnG2EjExIZ4JhsDyfqquTtcIpY4Xw_0OGJsETeyA/edit#gid=0"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1wqXlnG2EjExIZ4JhsDyfqouTtcIpY4Xw_0OGsJETeyA/edit?gid=0#gid=0"
 WORKSHEET_NAME = "Sheet1"
 PDF_OPTIONS = {"encoding": "UTF-8"}
 
