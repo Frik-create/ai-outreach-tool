@@ -22,7 +22,7 @@ PDF_OPTIONS = {"encoding": "UTF-8"}
 st.sidebar.header("🔐 API Key Required")
 api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
 
-@st.experimental_singleton
+@st.singleton
 def get_pdf_url():
     return "https://outreach.qicp.co.za/QICP_Company_Summary.pdf"
 
