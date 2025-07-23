@@ -1,8 +1,6 @@
 streamlit
 openai
 gspread
-pandas
 pdfkit
 pytz
 oauth2client
-openai>=1.2.3
